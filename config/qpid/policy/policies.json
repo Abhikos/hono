@@ -22,20 +22,20 @@
         "DEFAULT_TENANT": {
           "allowDynamicSrc": false,
           "allowAnonymousSender": false,
-          "sources": "telemetry/DEFAULT_TENANT, telemetry/DEFAULT_TENANT/*",
-          "targets": "telemetry/DEFAULT_TENANT"
+          "sources": "telemetry.DEFAULT_TENANT, event.DEFAULT_TENANT",
+          "targets": ""
         },
         "anotherTenant": {
           "allowDynamicSrc": false,
           "allowAnonymousSender": false,
-          "sources": "telemetry/anotherTenant",
-          "targets": "telemetry/anotherTenant"
+          "sources": "telemetry.anotherTenant",
+          "targets": ""
         },
         "anonymous": {
           "allowDynamicSrc": false,
           "allowAnonymousSender": false,
-          "sources": "telemetry/*",
-          "targets": "telemetry/*"
+          "sources": "telemetry.*",
+          "targets": "telemetry.*"
         }
       }
     }
@@ -61,8 +61,8 @@
           "maxSessions": 50,
           "allowDynamicSrc": false,
           "allowAnonymousSender": false,
-          "sources": "telemetry/*",
-          "targets": "telemetry/*"
+          "sources": "$management",
+          "targets": "telemetry.*, event.*, $management"
         }
       }
     }

@@ -57,6 +57,9 @@ public class ExampleSender {
     @Autowired
     private HonoClientConfigProperties clientConfig;
 
+    @Value(value = "${spring.profiles.active}")
+    private String                profiles;
+
     @Autowired
     private Vertx vertx;
     private Context ctx;
@@ -107,8 +110,12 @@ public class ExampleSender {
                 }
                 return resultCodeTracker;
             }).compose(v -> {
-            /* step 5: create telemetry sender client */
+            /* step 5: create sender client */
+            if (profiles.contains("event")) {
+                client.createEventSender(tenantId, startupTracker.completer());
+            } else if (profiles.contains("telemetry")) {
                 client.createTelemetrySender(tenantId, startupTracker.completer());
+            }
             }, startupTracker);
         });
     }

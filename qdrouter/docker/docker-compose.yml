@@ -1,0 +1,37 @@
+version: '2'
+services:
+  rabbit:
+    image: rabbitmq:amqp10
+    ports:
+      - "45672:5672"
+      - "15672:15672"
+  artemis:
+    image: vromero/activemq-artemis
+    ports:
+      - "5672:5672"
+      - "8161:8161"
+      - "61616:61616"
+    environment:
+      - ARTEMIS_USER=user
+      - ARTEMIS_PASSWORD=password
+  qdrouter:
+    #image: qpid-dispatcher
+    image: gordons/qpid-dispatch:0.6.0
+    links:
+      - artemis
+      - rabbit
+    environment:
+      - AMQP_URI=amqp://artemis:5672
+    ports:
+      - "55672:5672"
+    volumes:
+      - "/c/Users/imm0420/qdrouterd.conf:/etc/qpid-dispatch/qdrouterd.conf"
+  test:
+    image: qpid-test:latest
+    links:
+      - qdrouter
+      - rabbit
+      - artemis
+    volumes:
+      - "/c/Users/imm0420/share:/share"
+    command: tail -f /dev/null

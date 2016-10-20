@@ -10,6 +10,12 @@ hono:
   server:
     bindaddress: 0.0.0.0
   telemetry:
+    pathseparator: .
+    downstream:
+      host: qdrouter
+      port: 5673
+  event:
+    pathseparator: .
     downstream:
       host: qdrouter
       port: 5673

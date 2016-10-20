@@ -21,6 +21,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import org.apache.qpid.proton.message.Message;
+import org.eclipse.hono.client.impl.EventConsumerImpl;
+import org.eclipse.hono.client.impl.EventSenderImpl;
 import org.eclipse.hono.client.impl.RegistrationClientImpl;
 import org.eclipse.hono.client.impl.TelemetryConsumerImpl;
 import org.eclipse.hono.client.impl.TelemetrySenderImpl;
@@ -220,6 +222,41 @@ public class HonoClient {
         }
         return this;
     }
+
+    public HonoClient createEventConsumer(
+            final String tenantId,
+            final Consumer<Message> eventConsumer,
+            final Handler<AsyncResult<TelemetryConsumer>> creationHandler) {
+
+        Objects.requireNonNull(tenantId);
+        if (connection == null || connection.isDisconnected()) {
+            creationHandler.handle(Future.failedFuture("client is not connected to Hono (yet)"));
+        } else {
+            EventConsumerImpl.create(context, connection, tenantId, pathSeparator, eventConsumer, creationHandler);
+        }
+        return this;
+    }
+
+    public HonoClient createEventSender(
+            final String tenantId,
+            final Handler<AsyncResult<TelemetrySender>> creationHandler) {
+
+        Objects.requireNonNull(tenantId);
+        if (connection == null || connection.isDisconnected()) {
+            creationHandler.handle(Future.failedFuture("client is not connected to Hono (yet)"));
+        } else {
+            EventSenderImpl.create(context, connection, tenantId, creationResult -> {
+                if (creationResult.succeeded()) {
+                    activeSenders.put(tenantId, creationResult.result());
+                    creationHandler.handle(Future.succeededFuture(creationResult.result()));
+                } else {
+                    creationHandler.handle(Future.failedFuture(creationResult.cause()));
+                }
+            });
+        }
+        return this;
+    }
+
 
     public HonoClient getOrCreateRegistrationClient(
             final String tenantId,

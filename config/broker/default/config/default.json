@@ -1,0 +1,15 @@
+{
+  "id" : "892f8924-91b3-4251-b19c-a147d278d2a2",
+  "type" : "DERBY",
+  "name" : "default",
+  "modelVersion" : "6.1",
+  "nodeAutoCreationPolicies" : [ {
+    "pattern" : "/alarm/.*",
+    "createdOnPublish" : true,
+    "createdOnConsume" : true,
+    "nodeType" : "queue",
+    "attributes" : {
+      "durable" : true
+    }
+  } ]
+}

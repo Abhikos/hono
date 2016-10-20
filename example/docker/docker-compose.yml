@@ -11,15 +11,60 @@ services:
   hono-config:
     image: eclipsehono/hono-default-config:${project.version}
 
+  #qpid-broker-config:
+  #  image: eclipsehono/broker-default-config:0.1-SNAPSHOT
+
+  artemis-config:
+    image: eclipsehono/artemis-default-config:0.1-SNAPSHOT
+
+  # Qpid Java Broker
+  #broker:
+  #  image: eclipsehono/qpid-broker
+  #  hostname: broker
+  #  ports:
+  #    - "18080:8080"
+  #    - "25672:5672"
+  #  volumes_from:
+  #    - qpid-broker-config
+  #  volumes:
+  #    - /path/to/broker:/root
+
+  # Apache Artemis Broker
+  broker:
+    image: vromero/activemq-artemis
+  #  environment:
+  #    - ARTEMIS_USERNAME=test
+  #    - ARTEMIS_PASSWORD=test
+    ports:
+      - "8161:8161"
+      - "25672:5672"
+  #  volumes:
+  #    - /path/to/artemis/etc:/var/lib/artemis/etc
+  #    - /path/to/artemis/data:/var/lib/artemis/data
+  #    - /path/to/artemis/tmp:/var/lib/artemis/tmp
+    volumes_from:
+      - artemis-config
+
   qdrouter:
     image: gordons/qpid-dispatch:${qpid-dispatch.version}
     ports:
       - "15672:5672"
-    expose:
-      - "5673"
+    links:
+      - broker
     volumes_from:
       - qpid-config
       - qpid-sasldb
+
+  # websockify to access QDR Web Console
+  #websockify:
+  #  image: qpid/websockify
+  #  ports:
+  #    - "5679:5673"
+  #  links:
+  #    - qdrouter
+  #  environment:
+  #    - TARGET_HOST=qdrouter
+  #    - TARGET_PORT=5673
 
   hono:
     image: eclipsehono/hono-server:${project.version}
@@ -29,6 +74,8 @@ services:
       - qdrouter
     environment:
       - HONO_PERMISSIONS_PATH=file:/etc/hono/permissions.json
+      - HONO_TELEMETRY_DOWNSTREAM_HOST=qdrouter
+      - HONO_EVENT_DOWNSTREAM_HOST=qdrouter
       - HONO_MAX_INSTANCES=1
       - LOGGING_CONFIG=file:///etc/hono/logback-spring.xml
       - SPRING_CONFIG_LOCATION=file:/etc/hono/

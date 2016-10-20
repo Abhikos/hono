@@ -13,6 +13,8 @@
 package org.eclipse.hono.example;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -31,15 +33,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import io.vertx.core.CompositeFuture;
 import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.proton.ProtonClientOptions;
 
 /**
- * Example of a telemetry receiver that connects to the Hono Server, waits for incoming messages and logs the message
+ * Example of a event/telemetry receiver that connects to the Hono Server, waits for incoming messages and logs the message
  * payload if anything is received.
  */
 @Component
@@ -55,6 +59,9 @@ public class ExampleReceiver {
     private HonoClientConfigProperties clientConfig;
 
     @Autowired
+    private Environment environment;
+
+    @Autowired
     private Vertx vertx;
     private Context ctx;
     private HonoClient client;
@@ -62,16 +69,17 @@ public class ExampleReceiver {
     @PostConstruct
     private void start() {
 
+        final List<String> activeProfiles = Arrays.asList(environment.getActiveProfiles());
         client = HonoClientBuilder.newClient(clientConfig).vertx(vertx).build();
-        Future<TelemetryConsumer> startupTracker = Future.future();
+        Future<CompositeFuture> startupTracker = Future.future();
         startupTracker.setHandler(done -> {
             if (done.succeeded()) {
-                LOG.info("Telemetry receiver created successfully.");
+                LOG.info("Receiver created successfully.");
                 vertx.executeBlocking(this::waitForInput, false, finish -> {
                     vertx.close();
                 });
             } else {
-                LOG.error("Error occurred during initialization of telemetry receiver: {}", done.cause().getMessage());
+                LOG.error("Error occurred during initialization of message receiver: {}", done.cause().getMessage());
                 vertx.close();
             }
         });
@@ -82,10 +90,28 @@ public class ExampleReceiver {
             final Future<HonoClient> connectionTracker = Future.future();
             client.connect(new ProtonClientOptions(), connectionTracker.completer());
             connectionTracker.compose(honoClient -> {
-                /* step 2: create telemetry consumer */
-                client.createTelemetryConsumer(tenantId,
-                        this::handleMessage,
-                        startupTracker.completer());
+                /* step 2: wait for consumers */
+
+                final Future<TelemetryConsumer> telemetryConsumer = Future.future();
+                if (activeProfiles.contains("telemetry")) {
+                    client.createTelemetryConsumer(tenantId,
+                            this::handleMessage,
+                            telemetryConsumer.completer());
+                } else {
+                    telemetryConsumer.complete();
+                }
+
+                final Future<TelemetryConsumer> eventConsumer = Future.future();
+                if (activeProfiles.contains("event")) {
+                    client.createEventConsumer(tenantId,
+                            this::handleMessage,
+                            eventConsumer.completer());
+                } else {
+                    eventConsumer.complete();
+                }
+
+                CompositeFuture.all(telemetryConsumer, eventConsumer).setHandler(startupTracker.completer());
+
             }, startupTracker);
         });
     }
@@ -113,7 +139,7 @@ public class ExampleReceiver {
             content = ((AmqpValue) msg.getBody()).getValue().toString();
         }
 
-        LOG.info("received telemetry message [device: {}, content-type: {}]: {}", deviceId, msg.getContentType(), content);
+        LOG.info("received telemetry message at address {} [device: {}, content-type: {}]: {}", msg.getAddress(), deviceId, msg.getContentType(), content);
 
         if (msg.getApplicationProperties() != null) {
             Map props = msg.getApplicationProperties().getValue();
