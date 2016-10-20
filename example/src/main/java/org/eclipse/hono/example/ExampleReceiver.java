@@ -139,7 +139,7 @@ public class ExampleReceiver {
             content = ((AmqpValue) msg.getBody()).getValue().toString();
         }
 
-        LOG.info("received telemetry message at address {} [device: {}, content-type: {}]: {}", msg.getAddress(), deviceId, msg.getContentType(), content);
+        LOG.info("received message at address {} [device: {}, content-type: {}]: {}", msg.getAddress(), deviceId, msg.getContentType(), content);
 
         if (msg.getApplicationProperties() != null) {
             Map props = msg.getApplicationProperties().getValue();
