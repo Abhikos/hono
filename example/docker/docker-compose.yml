@@ -12,10 +12,10 @@ services:
     image: eclipsehono/hono-default-config:${project.version}
 
   #qpid-broker-config:
-  #  image: eclipsehono/broker-default-config:0.1-SNAPSHOT
+  #  image: eclipsehono/broker-default-config:${project.version}
 
   artemis-config:
-    image: eclipsehono/artemis-default-config:0.1-SNAPSHOT
+    image: eclipsehono/artemis-default-config:${project.version}
 
   # Qpid Java Broker
   #broker:
