@@ -16,7 +16,6 @@ hono:
       port: 5673
   event:
     pathSeparator: .
-    pathseparator: .
     downstream:
       host: qdrouter
       port: 5673
