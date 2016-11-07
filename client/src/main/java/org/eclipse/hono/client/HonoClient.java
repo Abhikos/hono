@@ -48,14 +48,14 @@ public class HonoClient {
     private final String host;
     private final int port;
     private final String pathSeparator;
-    private final Map<String, TelemetrySender> activeSenders = new ConcurrentHashMap<>();
+    private final Map<String, MessageSender> activeSenders = new ConcurrentHashMap<>();
     private final Map<String, RegistrationClient> activeRegClients = new ConcurrentHashMap<>();
     private final String user;
     private final String password;
     private ProtonClientOptions clientOptions;
     private ProtonConnection connection;
-    private AtomicBoolean connecting = new AtomicBoolean(false);
-    private Vertx vertx;
+    private final AtomicBoolean connecting = new AtomicBoolean(false);
+    private final Vertx vertx;
     private Context context;
 
     /**
@@ -121,7 +121,7 @@ public class HonoClient {
             }
             LOG.debug("connecting to server [{}:{}] as user [{}]...", host, port, user);
 
-            ProtonClient protonClient = ProtonClient.create(vertx);
+            final ProtonClient protonClient = ProtonClient.create(vertx);
             protonClient.connect(clientOptions, host, port, user, password, conAttempt -> {
 
                 if (conAttempt.succeeded()) {
@@ -178,9 +178,9 @@ public class HonoClient {
 
     public HonoClient getOrCreateTelemetrySender(
             final String tenantId,
-            final Handler<AsyncResult<TelemetrySender>> resultHandler) {
+            final Handler<AsyncResult<MessageSender>> resultHandler) {
 
-        TelemetrySender sender = activeSenders.get(Objects.requireNonNull(tenantId));
+        final MessageSender sender = activeSenders.get(Objects.requireNonNull(tenantId));
         if (sender != null) {
             resultHandler.handle(Future.succeededFuture(sender));
         } else {
@@ -191,7 +191,7 @@ public class HonoClient {
 
     public HonoClient createTelemetrySender(
             final String tenantId,
-            final Handler<AsyncResult<TelemetrySender>> creationHandler) {
+            final Handler<AsyncResult<MessageSender>> creationHandler) {
 
         Objects.requireNonNull(tenantId);
         if (connection == null || connection.isDisconnected()) {
@@ -212,7 +212,7 @@ public class HonoClient {
     public HonoClient createTelemetryConsumer(
             final String tenantId,
             final Consumer<Message> telemetryConsumer,
-            final Handler<AsyncResult<TelemetryConsumer>> creationHandler) {
+            final Handler<AsyncResult<MessageConsumer>> creationHandler) {
 
         Objects.requireNonNull(tenantId);
         if (connection == null || connection.isDisconnected()) {
@@ -226,7 +226,7 @@ public class HonoClient {
     public HonoClient createEventConsumer(
             final String tenantId,
             final Consumer<Message> eventConsumer,
-            final Handler<AsyncResult<TelemetryConsumer>> creationHandler) {
+            final Handler<AsyncResult<MessageConsumer>> creationHandler) {
 
         Objects.requireNonNull(tenantId);
         if (connection == null || connection.isDisconnected()) {
@@ -239,7 +239,7 @@ public class HonoClient {
 
     public HonoClient createEventSender(
             final String tenantId,
-            final Handler<AsyncResult<TelemetrySender>> creationHandler) {
+            final Handler<AsyncResult<MessageSender>> creationHandler) {
 
         Objects.requireNonNull(tenantId);
         if (connection == null || connection.isDisconnected()) {
@@ -262,7 +262,7 @@ public class HonoClient {
             final String tenantId,
             final Handler<AsyncResult<RegistrationClient>> resultHandler) {
 
-        RegistrationClient regClient = activeRegClients.get(Objects.requireNonNull(tenantId));
+        final RegistrationClient regClient = activeRegClients.get(Objects.requireNonNull(tenantId));
         if (regClient != null) {
             resultHandler.handle(Future.succeededFuture(regClient));
         } else {
@@ -297,7 +297,7 @@ public class HonoClient {
      * This method waits for at most 5 seconds for the connection to be closed properly.
      */
     public void shutdown() {
-        CountDownLatch latch = new CountDownLatch(1);
+        final CountDownLatch latch = new CountDownLatch(1);
         shutdown(done -> {
             if (done.succeeded()) {
                 latch.countDown();
@@ -309,7 +309,7 @@ public class HonoClient {
             if (!latch.await(5, TimeUnit.SECONDS)) {
                 LOG.error("shutdown of client timed out");
             }
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             Thread.currentThread().interrupt();
         }
     }
@@ -353,7 +353,7 @@ public class HonoClient {
         }
 
         public static HonoClientBuilder newClient(final HonoClientConfigProperties config) {
-            HonoClientBuilder builder = new HonoClientBuilder();
+            final HonoClientBuilder builder = new HonoClientBuilder();
             builder
                 .name(config.getName())
                 .host(config.getHost())

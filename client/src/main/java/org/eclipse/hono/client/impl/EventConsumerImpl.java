@@ -17,7 +17,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 import org.apache.qpid.proton.message.Message;
-import org.eclipse.hono.client.TelemetryConsumer;
+import org.eclipse.hono.client.MessageConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +31,7 @@ import io.vertx.proton.ProtonReceiver;
 /**
  * A Vertx-Proton based client for consuming telemetry data from a Hono server.
  */
-public class EventConsumerImpl extends AbstractHonoClient implements TelemetryConsumer {
+public class EventConsumerImpl extends AbstractHonoClient implements MessageConsumer {
 
     private static final String EVENT_ADDRESS_TEMPLATE = "event%s%s";
     private static final Logger LOG = LoggerFactory.getLogger(EventConsumerImpl.class);
@@ -47,7 +47,7 @@ public class EventConsumerImpl extends AbstractHonoClient implements TelemetryCo
             final String tenantId,
             final String pathSeparator,
             final Consumer<Message> eventConsumer,
-            final Handler<AsyncResult<TelemetryConsumer>> creationHandler) {
+            final Handler<AsyncResult<MessageConsumer>> creationHandler) {
 
         Objects.requireNonNull(con);
         Objects.requireNonNull(tenantId);

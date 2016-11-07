@@ -26,7 +26,7 @@ import org.apache.qpid.proton.message.Message;
 import org.eclipse.hono.client.HonoClient;
 import org.eclipse.hono.client.HonoClient.HonoClientBuilder;
 import org.eclipse.hono.client.HonoClientConfigProperties;
-import org.eclipse.hono.client.TelemetryConsumer;
+import org.eclipse.hono.client.MessageConsumer;
 import org.eclipse.hono.util.MessageHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +53,7 @@ public class ExampleReceiver {
     private static final Logger LOG = LoggerFactory.getLogger(ExampleReceiver.class);
 
     @Value(value = "${tenant.id}")
-    private String                tenantId;
+    private String tenantId;
 
     @Autowired
     private HonoClientConfigProperties clientConfig;
@@ -71,7 +71,7 @@ public class ExampleReceiver {
 
         final List<String> activeProfiles = Arrays.asList(environment.getActiveProfiles());
         client = HonoClientBuilder.newClient(clientConfig).vertx(vertx).build();
-        Future<CompositeFuture> startupTracker = Future.future();
+        final Future<CompositeFuture> startupTracker = Future.future();
         startupTracker.setHandler(done -> {
             if (done.succeeded()) {
                 LOG.info("Receiver created successfully.");
@@ -85,26 +85,26 @@ public class ExampleReceiver {
         });
 
         ctx = vertx.getOrCreateContext();
-        ctx.runOnContext(go -> {
+        ctx.runOnContext((Void go) -> {
             /* step 1: connect hono client */
             final Future<HonoClient> connectionTracker = Future.future();
             client.connect(new ProtonClientOptions(), connectionTracker.completer());
             connectionTracker.compose(honoClient -> {
                 /* step 2: wait for consumers */
 
-                final Future<TelemetryConsumer> telemetryConsumer = Future.future();
+                final Future<MessageConsumer> telemetryConsumer = Future.future();
                 if (activeProfiles.contains("telemetry")) {
                     client.createTelemetryConsumer(tenantId,
-                            this::handleMessage,
+                            msg -> handleMessage("telemetry", msg),
                             telemetryConsumer.completer());
                 } else {
                     telemetryConsumer.complete();
                 }
 
-                final Future<TelemetryConsumer> eventConsumer = Future.future();
+                final Future<MessageConsumer> eventConsumer = Future.future();
                 if (activeProfiles.contains("event")) {
                     client.createEventConsumer(tenantId,
-                            this::handleMessage,
+                            (msg) -> handleMessage("event", msg),
                             eventConsumer.completer());
                 } else {
                     eventConsumer.complete();
@@ -129,9 +129,9 @@ public class ExampleReceiver {
         }
     }
 
-    private void handleMessage(final Message msg) {
-        String deviceId = MessageHelper.getDeviceId(msg);
-        Section body = msg.getBody();
+    private void handleMessage(final String endpoint, final Message msg) {
+        final String deviceId = MessageHelper.getDeviceId(msg);
+        final Section body = msg.getBody();
         String content = null;
         if (body instanceof Data) {
             content = ((Data) msg.getBody()).getValue().toString();
@@ -139,10 +139,10 @@ public class ExampleReceiver {
             content = ((AmqpValue) msg.getBody()).getValue().toString();
         }
 
-        LOG.info("received message at address {} [device: {}, content-type: {}]: {}", msg.getAddress(), deviceId, msg.getContentType(), content);
+        LOG.info("received " + endpoint + " message [device: {}, content-type: {}]: {}", deviceId, msg.getContentType(), content);
 
         if (msg.getApplicationProperties() != null) {
-            Map props = msg.getApplicationProperties().getValue();
+            final Map props = msg.getApplicationProperties().getValue();
             LOG.info("... with application properties: {}", props);
         }
     }
