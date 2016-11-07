@@ -24,7 +24,7 @@ import io.vertx.core.Handler;
  * A client for uploading telemetry data to a Hono server.
  *
  */
-public interface MessageSender extends TelemetrySender {
+public interface MessageSender {
 
     /**
      * Checks if this sender can send or buffer (and send later) a telemetry message.

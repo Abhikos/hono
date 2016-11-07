@@ -22,9 +22,9 @@ import java.util.stream.IntStream;
 import org.apache.qpid.proton.message.Message;
 import org.eclipse.hono.client.HonoClient;
 import org.eclipse.hono.client.HonoClient.HonoClientBuilder;
+import org.eclipse.hono.client.MessageConsumer;
+import org.eclipse.hono.client.MessageSender;
 import org.eclipse.hono.client.RegistrationClient;
-import org.eclipse.hono.client.TelemetryConsumer;
-import org.eclipse.hono.client.TelemetrySender;
 import org.eclipse.hono.util.MessageHelper;
 import org.eclipse.hono.util.RegistrationResult;
 import org.junit.After;
@@ -70,15 +70,15 @@ public class TelemetryClientIT {
     private static HonoClient honoClient;
     private static HonoClient downstreamClient;
     private static RegistrationClient registrationClient;
-    private static TelemetrySender sender;
-    private static TelemetryConsumer consumer;
+    private static MessageSender sender;
+    private static MessageConsumer consumer;
 
     @BeforeClass
     public static void connect(final TestContext ctx) throws Exception {
 
         final Async done = ctx.async();
 
-        Future<TelemetrySender> setupTracker = Future.future();
+        Future<MessageSender> setupTracker = Future.future();
         Future<HonoClient> downstreamTracker = Future.future();
         CompositeFuture.all(setupTracker, downstreamTracker).setHandler(r -> {
             if (r.succeeded()) {
@@ -186,7 +186,7 @@ public class TelemetryClientIT {
         final Async received = ctx.async(MSG_COUNT);
         final Async setup = ctx.async();
 
-        final Future<TelemetryConsumer> setupTracker = Future.future();
+        final Future<MessageConsumer> setupTracker = Future.future();
         setupTracker.setHandler(ctx.asyncAssertSuccess(ok -> {
             consumer = setupTracker.result();
             setup.complete();

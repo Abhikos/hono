@@ -29,7 +29,6 @@ import org.apache.qpid.proton.amqp.messaging.ApplicationProperties;
 import org.apache.qpid.proton.amqp.messaging.Data;
 import org.apache.qpid.proton.message.Message;
 import org.eclipse.hono.client.MessageSender;
-import org.eclipse.hono.client.TelemetrySender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
