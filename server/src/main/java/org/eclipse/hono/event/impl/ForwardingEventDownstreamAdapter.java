@@ -22,12 +22,11 @@ import org.springframework.stereotype.Component;
 
 import io.vertx.core.Vertx;
 import io.vertx.proton.ProtonDelivery;
-import io.vertx.proton.ProtonHelper;
 import io.vertx.proton.ProtonQoS;
 import io.vertx.proton.ProtonSender;
 
 /**
- * A telemetry adapter that forwards uploaded messages to another AMQP 1.0 container.
+ * A event adapter that forwards uploaded messages to another AMQP 1.0 container.
  *
  */
 @Component

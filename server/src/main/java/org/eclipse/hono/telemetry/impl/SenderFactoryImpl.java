@@ -83,7 +83,8 @@ public class SenderFactoryImpl implements SenderFactory {
                         downstreamConnection.getRemoteContainer());
                 result.complete(openAttempt.result());
             } else {
-                LOG.debug("could not open sender for downstream container [{}]",
+                LOG.debug("could not open sender [{}] for downstream container [{}]",
+                        address,
                         downstreamConnection.getRemoteContainer(), openAttempt.cause());
                 result.fail(openAttempt.cause());
             }

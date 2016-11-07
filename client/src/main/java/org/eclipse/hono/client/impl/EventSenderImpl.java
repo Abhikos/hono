@@ -42,7 +42,7 @@ import io.vertx.proton.ProtonQoS;
 import io.vertx.proton.ProtonSender;
 
 /**
- * A Vertx-Proton based client for uploading telemtry data to a Hono server.
+ * A Vertx-Proton based client for event messages to a Hono server.
  */
 public class EventSenderImpl extends AbstractHonoClient implements TelemetrySender {
 

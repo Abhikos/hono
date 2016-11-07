@@ -47,7 +47,7 @@ import io.vertx.proton.ProtonReceiver;
  */
 @Component
 @Scope("prototype")
-@Qualifier("telemetry")
+@Qualifier("event")
 public final class EventEndpoint extends BaseEndpoint {
 
     private static final Logger LOG = LoggerFactory.getLogger(EventEndpoint.class);
@@ -77,7 +77,7 @@ public final class EventEndpoint extends BaseEndpoint {
 
 
     @Autowired
-    @Qualifier("telemetry")
+    @Qualifier("event")
     public final void setDownstreamAdapter(final DownstreamAdapter adapter) {
         this.downstreamAdapter = Objects.requireNonNull(adapter);
     }
